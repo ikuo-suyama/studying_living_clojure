@@ -111,4 +111,51 @@ developer
 
 
 ; Functions
+(defn sample-function [] "test")
+
+; with parameters
+(defn sample-function-with-params [jam1 jam2]
+  {:name "jam-basket"
+   :jam1 jam1
+   :jam2 jam2})
+(sample-function-with-params "a" "b")
+; => {:name "jam-basket", :jam1 "a", :jam2 "b"}
+
+; aliases of defn
+((fn [a] (print a)) "test")
+; test=> nil
+
+; # is alease of fn and %, %1, %2 ... means parametors of anonymous function
+(#(print %) "test")
+; test=> nil
+
+
+; namespace
+(ns test.namespace)
+
+*ns*
+;=> #<Namespace test.namespace>
+developer
+; -> not defined
+(defn test-namespase [] (print "HOGE"))
+
+;
+chapter-1.samples/developer
+; => "Alice"
+
+; normal require
+(require 'clojure.set)
+
+; namespase with requrie
+(ns test2.namespace
+  (:require [test.namespace :as t]))
+; enable alias as "t"
+(t/test-namespase)
+
+; refer all
+(ns test3.namespase
+  (:require [test.namespace :refer :all]))
+; enable calling the function without namespase
+(test-namespase)
+
 
