@@ -236,15 +236,75 @@
 (alice-is-with-loop adjs)
 
 ; in general, always use recur when you are doing recursive calls.
-(defn recur-combine-string [comb-str target-list]
+(defn recursive-combine-string [comb-str target-list]
   ((fn ! [output recurring-list]
      (if (empty? recurring-list)
-       (str comb-str output)
-       (! (str comb-str (first recurring-list))
+       (clojure.string/trim output)
+       (! (str output comb-str (first recurring-list))
           (rest recurring-list)))) "" target-list))
 
-;    (str comb-str (first target-list)))
+(recursive-combine-string " " ["test1" "test2" "test3"])
 
-;  ((fn [x x2] (str x x2)) comb-str (first target-list)))
+; -> using recur
+; --> @see join ***using StringBuilder...
+;(defn combine-string-with-recur [target-list]
+;  (if (empty? target-list)
+;    " "
+;    (recur (rest target-list))))
+;
+;(combine-string-with-recur ["test1" "test2" "test3"])
 
-  (recur-combine-string " " ["test1" "test2"])
+
+
+
+; -*-*-*-*-*-* Functional Way of Data Transration -Map and Reduce -*-*-*-*-*-*
+; Map
+(def animals [:mouse :duc :dodo :lory :eaglet])
+
+(map (fn [target] (str target)) animals)
+; => (":mouse" ":duc" ":dodo" ":lory" ":eaglet")
+; => this is LazySeq so map can treat infinite sequrence
+
+(take 10 (map #(str %) (cycle animals)))
+
+; make sure the side effects are being executed
+; ex. println --> output S.O as side effects
+(map #(println %) [1 3 4 5 6])
+;1
+;3
+;4
+;5
+;6
+;=> (nil nil nil nil nil)
+
+; => force evaluation ..?
+
+; we can use map for more than 1 seq,
+; map stop shortest sequence when several seq
+(map (fn [x y](str x "_" y)) [1 2 4 5] [10 11 12])
+;=> ("1_10" "2_11" "4_12")
+
+; we can use cycle in this case
+(map (fn [x y](str x "_" y)) [1 2 4 5] (cycle [10 11]))
+; => ("1_10" "2_11" "4_10" "5_11")
+
+; Reduce
+(reduce + [1 2 3 4 5])
+
+; create new vector
+; seq + value
+(reduce (fn [r x]
+          (if (nil? x)
+            r
+            (conj r x)))
+        []
+        [:fu_k nil :f_ck nil])
+
+; combine (value + value)
+(reduce (fn [r x] (str r "_" x)) ["a" "b" "c"])
+
+; of cource we cannot use reduce with lazy seq(means infinite)
+
+
+
+
