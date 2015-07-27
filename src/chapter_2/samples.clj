@@ -306,5 +306,43 @@
 ; of cource we cannot use reduce with lazy seq(means infinite)
 
 
+; complement -> create function return opposite truth value
+; filter -> create new sequence only contain fn return ture value
+(filter (complement nil?) [:test nil :test2 nil])
 
+; same meanig
+(remove nil? [:test nil :test2 nil])
+
+; for
+; first arg: bind valiable, second: function for each value
+(for [animal [:mouse :duck :lory]]
+  (str (name animal)))
+; => ("mouse" "duck" "lory")
+
+; nested roop
+(for [animal [:mouse :duck :lory]
+      color [:red :blue]]
+  (str (name animal) (name color)))
+; => ("mousered" "mouseblue" "duckred" "duckblue" "loryred" "loryblue")
+
+; nested roop 2
+(for [i (take 5 (range))
+      j (take 4 (range))]
+  (str i "_" j))
+; => ("0_0" "0_1" "0_2" "0_3" "1_0" "1_1" "1_2" "1_3" "2_0" "2_1" "2_2" "2_3" "3_0" "3_1" "3_2" "3_3" "4_0" "4_1" "4_2" "4_3")
+
+
+; with :let and when
+(for [animal [:mouse :duck :lory]
+      color [:red :blue]
+  :let [animal-str (str "animal-" (name animal))
+        color-str (str "color-" (name color))]
+  :when (= color :blue)]
+  (str animal-str "_" color-str))
+; => ("animal-mouse_color-blue" "animal-duck_color-blue" "animal-lory_color-blue")
+
+; functions oparete collection
+; flatten vec into
+(partition-all 3 [1 2 3 4 5 6 7 8 9 10])
+; => ((1 2 3) (4 5 6) (7 8 9) (10))
 

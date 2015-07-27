@@ -16,7 +16,7 @@
 
 ; con
 ; this is Error: shold end with nil
-(cons 4 5)
+; (cons 4 5)
 
 (cons 4 nil)
 (cons 4 '(4 5))
@@ -31,21 +31,24 @@
 (conj '(1 3 4) 5)
 ;=> added at first (5 1 3 4)
 
-;map
-(get {:key1 "val" :key2 "val2"} :key2)
-;=> "val2"
+(defn test-maps []
+  (
+    ;map
+    (get {:key1 "val" :key2 "val2"} :key2)
+    ;=> "val2"
 
-; set default value
-(get {:key1 "val" :key2 "val2"} :key3 "not found")
-=> "not found"
+    ; set default value
+    (get {:key1 "val" :key2 "val2"} :key3 "not found")
+    ; => "not found"
 
-; getting value using key as the funtion
-(:key1 {:key1 "test" :key2 "test2"})
-;=> "test"
+    ; getting value using key as the funtion
+    (:key1 {:key1 "test" :key2 "test2"})
+    ;=> "test"
 
-;this is Error:
-;  java.lang.String cannot be cast to clojure.lang.IFn
-("key1" {"key1" "test" :key2 "test2"})
+    ;this is Error:
+    ;  java.lang.String cannot be cast to clojure.lang.IFn
+    ("key1" {"key1" "test" :key2 "test2"})
+    ))
 
 
 ; assosicate
@@ -113,6 +116,10 @@ developer
 ; Functions
 (defn sample-function [] "test")
 
+(defn test-filtered [a-vector]
+  (filter #(< % 3) a-vector))
+
+
 ; with parameters
 (defn sample-function-with-params [jam1 jam2]
   {:name "jam-basket"
@@ -135,7 +142,7 @@ developer
 
 *ns*
 ;=> #<Namespace test.namespace>
-developer
+; developer
 ; -> not defined
 (defn test-namespase [] (print "HOGE"))
 
