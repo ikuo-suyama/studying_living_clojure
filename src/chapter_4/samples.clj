@@ -27,3 +27,43 @@
 
 (.toString sb)
 
+
+; -*-*-*-*-*-* Polymorphism -*-*-*-*-*-*-*-*-*
+; has small types and many different functions for them.
+
+; using defmulti
+(defmulti who-are-you class)
+
+(defmethod who-are-you java.lang.String [input]
+  (str "String - who are you? " input))
+
+(defmethod who-are-you clojure.lang.Keyword [input]
+  (str "Keyword - who are you? " input))
+
+(defmethod who-are-you :default [input]
+  (str "I Don't know - who are you? " input))
+
+(who-are-you :caterpillar)
+; => "String - who are you? caterpillar"
+
+(who-are-you "caterpillar")
+;=> "Keyword - who are you? :caterpillar"
+
+(who-are-you 1234)
+;=> "I Don't know - who are you? 1234"
+
+
+
+(defmulti eat-mushroom (fn [height]
+                         (if (< height 3)
+                           :grop
+                           :shrink)))
+
+(defmethod eat-mushroom :grow [_]
+  "Eat the right side to grow.")
+(defmethod eat-mushroom :shrink [_]
+  "Eat the left side to shink.")
+
+(eat-mushroom 5)
+(eat-mushroom 2)
+
