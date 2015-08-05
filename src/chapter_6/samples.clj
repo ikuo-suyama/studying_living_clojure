@@ -30,3 +30,22 @@
 
 
 
+;multipul channels
+(def tea-channel (async/chan 10))
+(def milk-channel (async/chan 10))
+(def sugure-channel (async/chan 10))
+
+(async/go-loop []
+  (let [[v ch] (async/alts! [tea-channel
+                             milk-channel
+                             sugure-channel])]
+    (println "Got " v "From " ch)
+    (recur)))
+
+; cannot use >! in go-loop
+(async/>! milk-channel :sweet-mkilk)
+;CompilerException java.lang.AssertionError: Assert failed: >! used not in (go ...) block
+
+(async/>!! milk-channel :sweet-mkilk)
+;=> true
+;Got  :sweet-mkilk From  #<ManyToManyChannel clojure.core.async.impl.channels.ManyToManyChannel@4dfc5dc6>
