@@ -63,7 +63,7 @@ reduce (fn [n x] (inc n)) 0
 ;=> true!!
 
 
-; #26
+; ----------------#26
 ; Fibonacci Sequence
 ((fn [max]
   (loop [coll [1 1]]
@@ -76,7 +76,7 @@ reduce (fn [n x] (inc n)) 0
 ; => (map first [[1 1] [1 2] [2 3] [3 5]])
 
 
-;  #27 sequence is a palindrome?
+; ----------------#27 sequence is a palindrome?
 ; (true? (__ "racecar"))
 #(= (reverse (into [] %)) (into [] %))
 
@@ -84,7 +84,7 @@ reduce (fn [n x] (inc n)) 0
 #(= (vec %) (reverse %))
 
 
-;# 28
+; ----------------#28
 (= (#((fn vecrecr [ret x]
         (if (next x)
           (if (coll? (first x))
@@ -108,10 +108,36 @@ reduce (fn [n x] (inc n)) 0
 ; Root -> the root node of the tree.
 ; identity 自分を返す
 
-; 29
+; ----------------#29
 ;(= (__ "HeLlO, WoRlD!") "HLOWRD")
 (fn [x] (clojure.string/join "" (filter #(Character/isUpperCase %) (into [] x))))
 
 ; [excellent]
-; #(clojure.string/replace % #"[^A-Z]" "")
+#(clojure.string/replace % #"[^A-Z]" "")
 
+
+
+; ----------------#30
+(= (apply str (#((fn [ret x]
+                   (if (next x)
+                     (if (= (last ret) (first x))
+                       (recur ret (next x))
+                       (recur (conj ret (first x)) (next x)))
+                     (if (= (last ret) (first x))
+                       ret
+                       (conj ret (first x)))))
+                 [] (seq %)) "Leeeeeerrroyyy")) "Leroy")
+
+((fn [ret x]
+  (if (next x)
+    (if (= (last ret) (first x))
+      (recur ret (next x))
+      (recur (conj ret (first x)) (next x)))
+    (if (= (last ret) (first x))
+      ret
+      (conj ret (first x)))))
+  [] [1 1 1 2 3 3 2 2 3])
+
+; [excellent]
+reduce #(if (= (last %1) %2) %1 (conj %1 %2)) []
+; reduce の２回め以降→ %1 ... Functionにかかった値 / %2 残りの配列の最初の値
