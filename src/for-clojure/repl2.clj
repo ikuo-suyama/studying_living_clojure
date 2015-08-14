@@ -128,3 +128,84 @@
 
 (= ((fn [coll n]
       (partition-by #(rem % n) (sort-by #(rem % n) coll))) [1 2 3 4 5 6] 2) '((1 3 5) (2 4 6)))
+; No 1. NG
+
+(fn [coll n]
+  (map #(second %) (group-by #(rem % n) coll)))
+(= ((fn [coll n]
+      (map #(second %) (group-by #(rem % n) coll))) [1 2 3 4 5 6] 2) '((1 3 5) (2 4 6)))
+
+; [excellent]
+#(apply map list (partition %2 %1))
+
+;apply
+(max [1 2 3])
+;;=> [1 2 3]
+
+(apply max [1 2 3])
+;;=> 3
+
+;; which is the same as
+(max 1 2 3)
+;;=> 3
+
+; ----------------#44
+(= (#(flatten
+      (reverse
+        (split-at
+          (let [go (rem %1 (count %2))]
+            (if (neg? go) (+ go (count %2)) go))
+          %2)))
+     2 [1 2 3 4 5]) '(3 4 5 1 2))
+
+#(flatten
+  (reverse
+    (split-at
+      (let [go (rem %1 (count %2))]
+        (if (neg? go) (+ go (count %2)) go))
+      %2)))
+
+; [excellent]
+#(let [n (mod %1 (count %2))]
+  (concat (drop n %2) (take n %2)))
+;; The mod function is defined as the amount by which a number exceeds the
+;; largest integer multiple of the divisor that is not greater than that number.
+;; The largest integer multiple of 5 not greater than -2 is 5 * -1 = -5.
+;; The amount by which -2 exceeds -5 is 3.
+
+
+; ----------------#45
+(take 5 (iterate inc 5))
+;(5 6 7 8 9)
+
+
+; ----------------#46
+(= 3 (((fn [func] #(func %2 %1)) nth) 2 [1 2 3 4 5]))
+
+(fn [func] #(func %2 %1))
+
+
+; ----------------#47
+; to Set .. valule
+(contains? #{4 5 6} 4)
+; to Vec ... index
+(contains? [1 1 1 1 1] 4)
+; to Map ... key
+(contains? {4 :a 2 :b} 4)
+
+; ----------------#48
+(= 6 (some #{2 7 6} [5 6 7 8]))
+; return first true value
+
+
+; ----------------#49
+(= (#(vector (take %1 %2) (drop %1 %2)) 3 [1 2 3 4 5 6]) [[1 2 3] [4 5 6]])
+; [excellent]
+#(list (take % %2) (drop % %2))
+
+
+; ----------------#50
+(= (set ((fn [x] (map #(second %) (group-by #(class %) x))) [1 :a 2 :b 3 :c])) #{[1 2 3] [:a :b :c]})
+
+; [excellent]
+#(vals (group-by class %))
