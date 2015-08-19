@@ -130,8 +130,8 @@
    ([a b] (test a b 3))
    ([a b c] (print c))) 1 2)
 ; or
-((fn test [a b & {:keys [c] :or {c 3}}]
-   (print c)) 1 2)
+;((fn test [a b & {:keys [c] :or {c 3}}]
+;   (print c)) 1 2)
 
 
 ;(take 5
@@ -162,6 +162,29 @@
 ;=> false
 ; still lazy
 
-
+; 1.
 (take 10 ((fn [coll]
             (lazy-seq (rest coll))) (range)))
+
+; 2.
+(take 10 ((fn [coll]
+            (cons (first coll) (lazy-seq (rest coll)))) (range)))
+
+
+; 3.
+(take 10
+      ((fn myself [first coll]
+         (if-not (= 11 (first coll))
+           (lazy-seq (myself (rest coll)))
+           (cons first (lazy-seq (+ first (first coll)))))) (range)))
+
+; http://www.thesoftwaresimpleton.com/blog/2014/09/08/lazy-seq/
+; now trying...
+(take 10
+      ((fn [firstV coll]
+         (letfn [(_reduct [_first _seq]
+                          (lazy-seq (when-not (empty? _seq)
+                                      (cons (+ 1 (first _seq)) (_reduct 1 (rest _seq))))))]
+           (lazy-seq (cons 1 (_reduct firstV coll)))))
+        1 (range)))
+
