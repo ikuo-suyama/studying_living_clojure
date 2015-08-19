@@ -180,11 +180,14 @@
 
 ; http://www.thesoftwaresimpleton.com/blog/2014/09/08/lazy-seq/
 ; now trying...
+; 実行直後（関数作成時）に関数が評価されると無限ループになってしまう。
+; →関数内で関数を定義して、lazy-seqを返すように...
 (take 10
-      ((fn [firstV coll]
-         (letfn [(_reduct [_first _seq]
-                          (lazy-seq (when-not (empty? _seq)
-                                      (cons (+ 1 (first _seq)) (_reduct 1 (rest _seq))))))]
-           (lazy-seq (cons 1 (_reduct firstV coll)))))
-        1 (range)))
+      ((fn [func firstval coll]
+         (letfn [(_reduct [_func _firstval _coll]
+                          (lazy-seq (when-not (empty? _coll)
+                                      (let [init (_func _firstval (first _coll))]
+                                        (cons init (_reduct _func init (rest _coll)))))))]
+           (lazy-seq (cons firstval (_reduct func firstval coll)))))
+        + 0 (range)))
 
