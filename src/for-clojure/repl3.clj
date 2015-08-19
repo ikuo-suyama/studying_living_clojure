@@ -116,7 +116,7 @@
     (mapv #(apply % xs) fs)))
 
 
-; ----------------#58
+; ----------------#60
 ;(= (take 5 (__ + (range))) [0 1 3 6 10])
 ;(0 1 2 3)
 
@@ -180,14 +180,116 @@
 
 ; http://www.thesoftwaresimpleton.com/blog/2014/09/08/lazy-seq/
 ; now trying...
-; 実行直後（関数作成時）に関数が評価されると無限ループになってしまう。
-; →関数内で関数を定義して、lazy-seqを返すように...
+; cons で後ろにつないでいく、値を返すために再帰呼び出しするところがミソ
 (take 10
-      ((fn [func firstval coll]
-         (letfn [(_reduct [_func _firstval _coll]
-                          (lazy-seq (when-not (empty? _coll)
-                                      (let [init (_func _firstval (first _coll))]
-                                        (cons init (_reduct _func init (rest _coll)))))))]
-           (lazy-seq (cons firstval (_reduct func firstval coll)))))
-        + 0 (range)))
+      ((fn myreduct
+         ([func coll]
+          (myreduct func (first coll) (rest coll)))
+         ([func firstval coll]
+          (letfn [(_reduct [_func _firstval _coll]
+                           (lazy-seq (when-not (empty? _coll)
+                                       (let [init (_func _firstval (first _coll))]
+                                         (cons init (_reduct _func init (rest _coll)))))))]
+            (lazy-seq (cons firstval (_reduct func firstval coll))))))
+        + (range)))
 
+; [excellent]
+(fn r
+  ([f c] (r f (first c) (rest c)))
+  ([f i c]
+   (if (empty? c)
+     (cons i nil)
+     (lazy-seq (cons i (r f (f i (first c)) (rest c)))))))
+
+
+(take 5 ((fn myred2
+           ([func coll] (myred2 func (first coll) (rest coll)))
+           ([func val coll]
+            (if (empty? coll)
+              (cons val nil)
+              (lazy-seq (cons val (myred2 func (func val (first coll)) (rest coll)))))))
+          + (range)))
+
+; 実行して展開されるとこんなイメージ？
+(take 3 (lazy-seq (cons 0 (lazy-seq (cons 1 (lazy-seq (cons 2 (lazy-seq (cons 3 (cons 4 nil))))))))))
+
+
+; ----------------#61
+(= ((fn [coll1 coll2]
+      (reduce merge {} (map hash-map coll1 coll2))) [:a :b :c] [1 2 3]) {:a 1, :b 2, :c 3})
+
+(fn [coll1 coll2]
+  (reduce merge {} (map hash-map coll1 coll2)))
+
+; [excellent]
+; Returns a lazy seq of the first item in each coll, then the second etc.
+#(apply assoc {} (interleave % %2))
+
+(interleave [:a :b :c] [1 2 3])
+; => (:a 1 :b 2 :c 3)
+
+
+
+; ----------------#62
+(= (take 5 ((fn myiterate [f v]
+              (lazy-seq (cons v (myiterate f (f v))))) #(* 2 %) 1)) [1 2 4 8 16])
+
+; [excellent]
+(fn ! [f x] (cons x (lazy-seq (! f (f x)))))
+
+
+
+; ----------------#63
+(= ((fn mygroupby [test coll]
+      (reduce #(assoc % (test %2) (conj (get % (test %2) []) %2)) {} coll)) #(> % 5) [1 3 6 8]) {false [1 3], true [6 8]})
+
+; [excellent]
+; Returns a map that consists of the rest of the maps conj-ed onto the first
+(fn gb2 [f vals]
+  (reduce #(merge-with into %1 {(f %2) [%2]}) {} vals))
+
+
+
+; ----------------#64
+(defn checkcoltype [target]
+   (cond
+     (= :val (:key (conj target [:key :val]))) :map
+     (= (inc (count target)) (count (conj target 1 1))) :set
+     (= 2 (first (conj target 1 2))) :list
+     (= 2 (last (conj target 1 2))) :vector
+     :else :unknown)
+   )
+
+; [excellent]
+(fn __ [x]
+  (cond (reversible? x) :vector
+        (associative? x) :map
+        (= (conj x 1 1) (conj x 1)) :set
+        :else :list))
+
+; [excellent2]
+; not knocking!
+#((zipmap (map str ['() [] {} #{}]) [:list :vector :map :set]) (str (empty %)))
+; (empty {:key :val})
+;=> {}
+(comp {\{ :map \# :set \[ :vector \c :list} first str)
+
+
+; ----------------#66
+(= ((fn [a b]
+      (let [x (min a b)
+            y (max a b)]
+        (letfn [(ld [v]
+                    (filter #(zero? (mod v %)) (reverse (range 1 (inc v)))))]
+          (first (filter #(and (zero? (mod x %)) (zero? (mod y %))) (ld x)))
+          ))) 1023 858) 33)
+
+; 1. 公約数の配列
+(filter #(zero? (mod 20 %)) (reverse (range 1 21)))
+
+
+; [excellent]
+(fn g [a b]
+  (if (= 0 a)
+    b
+    (g (mod b a) a)))
