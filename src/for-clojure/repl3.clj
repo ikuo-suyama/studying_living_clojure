@@ -293,3 +293,62 @@
   (if (= 0 a)
     b
     (g (mod b a) a)))
+
+
+; ----------------#67
+; primnumber
+
+(fn [c]
+  (take c (filter (fn isprim? [n]
+                    (cond (= 1 n) false
+                          (= 2 n) true
+                          (even? n) false
+                          :else ((fn prim? [_n coll]
+                                   (cond (empty? coll) true
+                                         (zero? (mod _n (first coll))) false
+                                         :else (recur _n (rest coll))))
+                                  n (filter odd? (range 3 (quot n 2))))))
+                  (range))))
+
+;is prim
+(defn isprim? [n]
+   (cond (= 1 n) false
+         (= 2 n) true
+         (even? n) false
+         :else ((fn prim? [_n coll]
+                  (cond (empty? coll) true
+                        (zero? (mod _n (first coll))) false
+                        :else (recur _n (rest coll))))
+                 n (filter odd? (range 3 (quot n 2))))))
+
+;is prim core
+((fn prim? [_n coll]
+   (cond (empty? coll) true
+         (zero? (mod _n (first coll))) false
+         :else (recur _n (rest coll))))
+  10 (filter odd? (range 3 (quot 10 2))))
+
+; 実行速度/BigNumberを気にしなければ..
+(fn [n] (take n (filter #(empty? (for [i (range 2 (inc (quot % 2))) :when (zero? (mod % i))] i)) (range 2 999))))
+
+
+
+; ----------------#68
+(= (__ * {:a 2, :b 3, :c 4} {:a 2} {:b 2} {:c 5}))
+((fn [f init & x]
+   (reduce
+     (fn [a b]
+       (reduce #(merge %1
+                       (cond
+                         (and (contains? a %2) (contains? b %2)) {%2 (f (get a %2) (get b %2))}
+                         (contains? b %2) {%2 (get b %2)}))
+               a (keys b)))
+  init x))
+  - {1 10, 2 20} {1 3, 2 10, 3 15})
+
+; [excellent] 
+(fn [f & a]
+  (into {}
+        (map
+          (fn [k] [k (reduce f (keep #(% k) a))])
+          (keys (apply merge a)))))
