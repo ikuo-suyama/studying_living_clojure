@@ -346,9 +346,27 @@
   init x))
   - {1 10, 2 20} {1 3, 2 10, 3 15})
 
-; [excellent] 
+; [excellent]
 (fn [f & a]
   (into {}
         (map
           (fn [k] [k (reduce f (keep #(% k) a))])
           (keys (apply merge a)))))
+
+
+; ----------------#68
+(= (__  "Have a nice day.")
+   ["a" "day" "Have" "nice"])
+
+((fn [str]
+   (sort-by #(-> % .toLowerCase)
+            (-> str
+                (.replaceAll "\\.|!" "")
+                (.split " "))))
+  "Have a nice day!")
+
+; [excellent]
+#(sort-by clojure.string/lower-case (re-seq #"\w+" %))
+; re-seq
+; Returns a lazy sequence of successive matches of pattern in string
+
