@@ -230,3 +230,109 @@
 (fn f [s]
   (let [r (apply conj s (remove nil? (for [a s b s]
                                        (if (= (second a) (first b)) [(first a) (second b)]))))] (if (= r s) r (f r))))
+
+; ----------------#85
+; powerset::べき集合
+(= (__ #{1 2 3})
+   #{#{} #{1} #{2} #{3} #{1 2} #{1 3} #{2 3} #{1 2 3}})
+
+; できるけど遅い
+((fn pwset [coll]
+   (letfn [(subs [_coll] (if (empty? _coll)
+                           _coll
+                           (for [x _coll]
+                             (let [sub (clojure.set/difference _coll (hash-set x))]
+                               (cons sub (subs sub))))))]
+     (set (conj (distinct (flatten (subs coll))) coll))))
+  #{1 2 3 4})
+;#{#{4 3} #{1 4 3 2} #{} #{3} #{4 3 2} #{2} #{1 4} #{1} #{4 2} #{1 3 2} #{1 3} #{1 2} #{1 4 3} #{4} #{3 2} #{1 4 2}}
+
+((fn [coll x]
+   (apply conj coll (for [v coll]
+           (conj v x)))) #{#{} #{1}} 2)
+
+(reduce #(apply conj %1
+                (for [v %1]
+                  (conj v %2))) #{#{}} #{1 2 3})
+
+
+; [excellent] for mine!!
+
+; ----------------#86
+; take each individual digit, square it, and then sum the squares to get a new number. Repeat with the new number and eventually, you might get to a number whose squared sum is 1. This is a happy number.
+(= (__ 7) true)
+
+((fn happy? [n]
+   (letfn [(calc-next [n]
+                      (reduce + (map #(* (Long. (str %)) (Long. (str %))) (set (str n)))))]
+
+     (loop [x (calc-next n)
+            ret #{n}]
+       (if (contains? ret x)
+         (= 1 x)
+         (recur (calc-next x) (conj ret x))))))
+  7)
+
+((fn calcNext [n]
+   (reduce + (map #(* (Long. (str %)) (Long. (str %))) (set (str n))))) 7)
+
+
+; ----------------#87
+(#(clojure.set/union (clojure.set/difference %1 %2) (clojure.set/difference %2 %1)) #{1 2 3 4 5 6} #{1 3 5 7})
+
+
+; ----------------#88
+((fn graph? [coll]
+   (letfn [(nodes [_coll]
+                  (distinct (flatten _coll)))
+
+           (edge? [node tuple]
+                  (contains? (set tuple) node))
+
+           (next-node [node edge]
+                 (if (apply distinct? edge)
+                   (first (disj (set edge) node))
+                   (first edge)))
+
+           (_remove [coll x]
+                    (let [n (.indexOf coll x)]
+                      (cond
+                        (= 0 n) (vec (rest coll))
+                        (= (count coll) (inc n)) (vec (butlast coll))
+                        :else (apply conj (subvec coll 0 n) (subvec coll (inc n))))))
+
+           (path? [node edges]
+                  (if (empty? edges)
+                    true
+                    (loop [_current edges]
+                      (println "debug!:" node edges _current)
+                      (if (empty? _current)
+                        false
+                        (let [e (first _current)]
+                          (if (edge? node e)
+                            (path? (next-node node e) (_remove edges e))
+                            (recur (rest _current))))
+                        ))))]
+
+     (loop [_nodes (nodes coll)]
+       (println "----- start " (first _nodes) " -----")
+       (if (path? (first _nodes) coll)
+         true
+         (if-not (empty? _nodes)
+           (recur (rest _nodes))
+           false)))
+     ))
+  [[:a :b] [:a :c] [:c :b] [:a :e]
+   [:b :e] [:a :d] [:b :d] [:c :e]
+   [:d :e] [:c :f] [:d :f]])
+
+
+; ----------------#89
+(= (__ #{1 2 3} #{4 5})
+   #{[1 4] [2 4] [3 4] [1 5] [2 5] [3 5]})
+
+((fn [a b]
+   (set (for [x a
+          y b]
+      (conj [] x y)))) #{1 2 3} #{4 5})
+
