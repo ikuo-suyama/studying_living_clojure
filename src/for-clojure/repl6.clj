@@ -187,3 +187,112 @@
 
 
 
+; ----------------#95
+(= (__ '(:a (:b nil nil) nil))
+   true)
+
+(= (__ '(:a (:b nil nil)))
+   false)
+
+((fn is-bt? [coll]
+   (if (and (coll? coll) (= 3 (count coll)))
+     (let [l (second coll)
+           r (last coll)]
+       (and (if (nil? l) true (is-bt? l))
+            (if (nil? r) true (is-bt? r))))
+     false)) [1 [2 [3 [4 false nil] nil] nil] nil])
+
+
+; ----------------#96
+(= ((fn is-symt? [coll]
+      (letfn [(rev-tree [coll]
+                        (let [v (first coll)
+                              l (second coll)
+                              r (last coll)]
+                          (conj [] v
+                                (if (coll? r) (rev-tree r) r)
+                                (if (coll? l) (rev-tree l) l))))]
+        (= (second coll) (rev-tree (last coll)))))
+
+     [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+        [2 [3 nil [4 [6 nil nil] [5 nil nil]]] nil]])
+   true)
+
+(fn is-symt? [coll]
+  (letfn [(rev-tree [coll]
+              (let [v (first coll)
+                    l (second coll)
+                    r (last coll)]
+                (conj [] v
+                      (if (coll? r) (rev-tree r) r)
+                      (if (coll? l) (rev-tree l) l))))]
+    (= (second coll) (rev-tree (last coll)))))
+
+; [excellent]
+#(= % ((fn mir [[r le ri :as tr]]
+         (if tr (conj [] r (mir ri) (mir le)))) %))
+
+
+; ----------------#97
+(= (map __ (range 1 6))
+   [     [1]
+    [1 1]
+    [1 2 1]
+    [1 3 3 1]
+    [1 4 6 4 1]])
+
+((fn [n]
+   (loop [i 1
+          ret [0 1 0]]
+     (if (= i n)
+       (filter #(not (zero? %)) ret)
+       (recur (inc i)
+              (conj (apply conj [] 0 (vec (for [x (range (inc i))]
+                                       (+ (ret x) (ret (inc x)))))) 0)
+              ))))
+  4)
+
+; [excellent]
+(fn pt [n]
+  (if
+    (= 1 n) [1]
+            (concat [1] (map + (pt (dec n)) (rest (pt (dec n)))) [1])))
+
+; ----------------#98
+; かんちがい
+;((fn np2 [coll]
+;   (loop [_c (vec coll)
+;          ret []]
+;     (println _c ret)
+;     (if (next _c)
+;       (recur (vec (rest _c))
+;              (apply conj ret (for [i (range (dec (count _c)))]
+;                 [(_c i) (_c (inc i))])))
+;       ret))) #{1 2 4})
+
+(= ((fn [f coll]
+      (reduce #(conj %1 (set (val %2))) #{} (group-by f coll))) #(* % %) #{-2 -1 0 1 2})
+   #{#{0} #{1 -1} #{2 -2}})
+
+(fn [f coll]
+  (reduce #(conj %1 (set (val %2))) #{} (group-by f coll)))
+
+; [excellent]
+#(set (map set (vals (group-by % %2))))
+
+
+; ----------------#99
+((fn [x y]
+   (reduce #(conj % (. Long parseLong %2)) [] (rest (clojure.string/split (str (* x y)) #"")))) 9 9)
+
+; [excellent]
+(comp #(map read-string (map str %)) str *)
+
+
+; ----------------#99
+((fn lcm [& args]
+   (let [m (apply max args)]
+     (loop [n 1]
+       (if (every? #(zero? (mod (* m n) %)) args)
+         (* m n)
+         (recur (inc n)))))) 3/4 1/6)

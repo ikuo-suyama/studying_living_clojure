@@ -160,7 +160,7 @@
 
 
 ; combination?
-; permtation?
+; permutation?
 ; sample partial
 ((fn partial
 
