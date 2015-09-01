@@ -296,3 +296,55 @@
        (if (every? #(zero? (mod (* m n) %)) args)
          (* m n)
          (recur (inc n)))))) 3/4 1/6)
+
+
+; ----------------#101
+((fn lev-dis [a b]
+   (letfn [(->seq [str]
+                  (set (map-indexed #(vector % %2) str)))
+
+           (distance [a b]
+                     (count (clojure.set/difference (->seq a) (->seq b))))
+
+           (closest [a b]
+                    (first (sort-by #(distance a %) <
+                                    (for [i (range 0 (count b))]
+                                      (str (subs b 0 i) (subs b (inc i)))))))
+           (to-string [s]
+                      ; just cheating about keyword
+                      (.replace (apply str s) ":" ""))]
+
+     (let [counta (count a)
+           countb (count b)]
+       (cond
+         (not (string? a)) (lev-dis (to-string a) (to-string b))
+         (> counta countb) (lev-dis b a)
+         (= counta countb) (distance a b)
+         (< counta countb)
+         (loop [c b
+                n 0]
+           (let [cl (closest a c)]
+             (if (= counta (count cl))
+               (+ (inc n) (distance a cl))
+               (recur cl (inc n))
+               )))))))
+  '(:a :b :c :d) '(:a :d))
+
+; [excellent]
+; 1文字ずつ削って、lastあってればcost 0, あってなければ１を足し上げる
+; そのminを取る
+((fn [s t]
+   (let [f (fn [f s t]
+             (let [sc (count s)
+                   tc (count t)]
+               (println s t)
+               (cond
+                 (= sc 0) tc
+                 (= tc 0) sc
+                 :else (let [cost (if (= (last s) (last t)) 0 1)]
+                         (min (inc (f f (butlast s) t))
+                              (inc (f f s (butlast t)))
+                              (+ (f f (butlast s) (butlast t)) cost))))))
+         mf (memoize f)]
+     (mf mf s t)))
+  "kitten" "sitting")
