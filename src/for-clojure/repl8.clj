@@ -251,3 +251,111 @@
        )))
   ["M   C"])
 
+
+; ----------------#118
+(= [3 4 5 6 7]
+   (__ inc [2 3 4 5 6]))
+
+(take 4
+      ((fn my-map
+         ([f coll] (my-map f (rest coll) (f (first coll))))
+         ([f coll & ret]
+          (if (not-empty coll)
+            (lazy-seq (cons ret (my-map f (rest coll) (f (first coll))))))))
+        inc (range)))
+
+((fn my-map
+   ([f coll] (my-map f (rest coll) (f (first coll))))
+   ([f coll ret]
+    (if (not-empty coll)
+      (lazy-seq (cons ret (my-map f (rest coll) (f (first coll)))))
+      (lazy-seq [ret]))))
+  inc [2 3 4 5 6])
+
+; [excellent]
+(fn mp [f s]
+  (when (seq s)
+    (cons (f (first s)) (lazy-seq (mp f (rest s))))))
+
+
+; ----------------#118
+(= (__ :x [[:o :e :e]
+           [:o :x :o]
+           [:x :x :e]])
+   #{[2 2] [0 1] [0 2]})
+
+((fn ttt [p board]
+   (let [MAXL (count board)
+         MAXC (count (first board))
+         CHK (concat
+               (for [i (range MAXL)]
+                 (for [j (range MAXC)]
+                   [i j]))
+               (for [i (range MAXL)]
+                 (for [j (range MAXC)]
+                   [j i]))
+               ; cross
+               '(([0 0] [1 1] [2 2])) '(([2 0] [1 1] [0 2])))
+
+         e-inxs (fn []
+                  (for [i (range MAXL)
+                        j (range MAXC)
+                        :when (= :e ((board i) j))]
+                    [i j]))
+
+         n-board (fn [coor]
+                   (vec (for [i (range MAXL)]
+                      (vec (for [j (range MAXC)]
+                             (if (and (= i (first coor)) (= j (second coor)))
+                               p
+                               ((board i) j)))))))
+
+         win? (fn [b l]
+                (println b l)
+                (every? #(= p ((b (first %)) (second %))) l))]
+
+     (reduce
+       (fn [ret e-coor]
+         (println ret e-coor)
+         (if (some #(win? (n-board e-coor) %) CHK)
+           (conj ret e-coor)
+           ret))
+       #{}
+       (e-inxs))
+     )) :x
+  [[:o :e :e]
+   [:o :x :o]
+   [:x :x :e]])
+
+; [excellent]
+(fn tic-tac [p b]
+  (let [r [0 1 2]]
+    (set (for [x r
+               y r
+               :when (and (= :e ((b x) y))
+                          (let [nb (assoc-in b [x y] p)
+                                w? (fn [s] (= [p] (distinct s)))]
+                            (or (w? (nb x))
+                                (w? (map #(% y) nb))
+                                (and (= #{0 2} (into #{0 2} [x y]))
+                                     (or (w? (map #((nb %) %) r))
+                                         (w? (map #((nb %) (- 2 %)) r)))))))]
+           [x y]))))
+
+
+; ----------------#120
+(= 8 (__ (range 10)))
+
+((fn [coll]
+   (letfn [(->seq [n]
+                  (map #(Integer/parseInt (str %)) (vec (str n))))
+           (calc [nseq]
+                 (reduce #(+ % (* %2 %2)) 0 nseq))]
+
+     (count (filter identity
+              (map #(->>
+                     (->seq %)
+                     (calc)
+                     (< %))
+                   coll)))
+     )) (range 10))
