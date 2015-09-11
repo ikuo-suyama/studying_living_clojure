@@ -119,8 +119,13 @@
          reverse-y (fn [coll]
                      (for [l coll]
                        (reverse l)))
-         reverse-xy (fn[coll]
+         reverse-xy (fn [coll]
                       (reverse-y (reverse-x coll)))
+         replace-xy (fn [coll]
+                      (let [vcoll (vec (map vec coll))]
+                        (for [x (range (count (first vcoll)))]
+                          (for [y (range (count vcoll))]
+                            ((vcoll y) x)))))
 
          shift-b (fn [x y mask]
                    (debug-b (bit-shift-right mask (+ y (* x COLY)))))
@@ -145,21 +150,43 @@
                         (harvestable? (reverse-y mask))
                         (harvestable? (reverse-xy mask))))
 
+         search-o (fn [mask]
+                    (let [sym-mask (replace-xy mask)]
+                      (or (harvestable? mask)
+                          (harvestable? (reverse-x mask))
+                          (harvestable? sym-mask)
+                          (harvestable? (reverse-y sym-mask)))))
+
+
+
          ;main
          harvest (fn []
-                   (loop [n LOWX]
-                     (let [mask-e (create-e n)]
-                       (if (search-e mask-e)
-                         (countm mask-e)
-                         (if (> n 2)
-                           (recur (dec n)))))
-                     ))
-         ]
+                   (max
+                     (loop [n COLY]
+                       (let [mask-e (create-e n)]
+                         (if (search-e mask-e)
+                           (countm mask-e)
+                           (if (> n 2)
+                             (recur (dec n))
+                             0))))
+                     (loop [n COLY]
+                       (if (even? n)
+                         (recur (dec n))
+                         (let [mask-o (create-o n)]
+                           (if (search-o mask-o)
+                             (countm mask-o)
+                             (if (> n 2)
+                               (recur (- 2 n))
+                               0)))))))]
 
      (debug "rocks" rocks)
-     (harvest)
-     ))
-  [0 31 0 31 0])
+     ;(debug (create-o 5))
+     ;(debug (replace-xy (create-o 5)))
+     (let [ret (harvest)]
+       (if (zero? ret)
+         nil
+         ret))))
+  [7 3])
 
 
 (= 10 (__ [15 15 15 15 15]))
