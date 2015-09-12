@@ -40,61 +40,37 @@
 ((fn pikc-tree [new-root tree]
    (let [walked (tree-seq next next tree)
          tree-reverse
-         (fn _tr [self current]
+         (fn _tr [before self current]
            (println "self: " self "current:" current)
            (if (empty? current)
              self
              (if (some #(= self %) (first current))
                (let [_self (first current)
-                     _ret (remove #(= self %) _self)]
+                     _ret (remove #(= self %) _self)
+                     _bef (remove #(= before %) self)]
                  (println "_self: " _self "_ret" _ret)
                  (if (next current)
-                   (concat self (list (_tr _self (rest current))))
-                   (concat self (list _ret))
+                   (concat self (list (_tr self _self (rest current))))
+                   (concat _bef (list _ret))
                    ))
-               (recur self (rest current)))
+               (recur self self (rest current)))
              ))]
-     (tree-reverse (list new-root)
-                   (reverse (take-while #(not= new-root (first %)) walked)))
+     (let [me (first (filter #(= new-root (first %)) walked))
+           target (take-while #(not= new-root (first %)) walked)]
+       (tree-reverse
+         me
+         me
+         (reverse target)))
      ))
-  ;'a '(t (e) (a))
-  ; 'e '(a (t (e))
-  'd '(a (b (c) (d) (e)) (f (g) (h)))
+  'a '(t (e) (a))
+  ;'e '(a (t (e)))
+  ; 'd '(a (b (c) (d) (e)) (f (g) (h)))
+  ;'c '(a (b (c (d) (e)) (f (g) (h))) (i (j (k) (l)) (m (n) (o))))
   )
 
-;(loop [self (list new-root)
-;       ret  (list new-root)
-;       current (reverse (take-while #(not= new-root (first %)) walked))
-;       ]
-;  (if (empty? current)
-;    ret
-;    (if (some #(= self %) (first current))
-;      (let [_self (first current)
-;            _ret  (concat ret (list (remove #(= self %) _self)))]
-;        (recur _self _ret (rest current)))
-;      (recur self ret (rest current)))
-;    )))
-
-(tree-seq next next '(a (t (e))))
-(reverse (take-while #(not= 'e (first %)) '(a (t (e)))))
-
-(tree-seq next next '(a
-                       (b
-                         (c)
-                         (d)
-                         (e))
-                       (f
-                         (g)
-                         (h))))
-'((a (b (c) (d) (e)) (f (g) (h)))
-   (b (c) (d) (e))
-   (c)
-   (d)
-   (e)
-   (f (g) (h))
-   (g)
-   (h))
-
-
-(= '(e (t (a)))
-   (__ 'e '(a (t (e)))))
+(fn reparent [e t]
+  (->> t
+       (tree-seq next rest)
+       (filter #(some #{e} (flatten %)))
+       (reduce (fn [a b]
+                 (concat b (list (remove #{b} a)))))))
