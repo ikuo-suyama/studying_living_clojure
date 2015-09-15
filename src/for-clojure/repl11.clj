@@ -68,9 +68,91 @@
   ;'c '(a (b (c (d) (e)) (f (g) (h))) (i (j (k) (l)) (m (n) (o))))
   )
 
+; [excellent]
 (fn reparent [e t]
   (->> t
        (tree-seq next rest)
        (filter #(some #{e} (flatten %)))
        (reduce (fn [a b]
                  (concat b (list (remove #{b} a)))))))
+
+; ----------------#131
+(= true  (__ #{1 3 5}
+             #{9 11 4}
+             #{-3 12 3}
+             #{-3 4 -2 10}))
+
+((fn [& sets]
+   (let [comb (fn _comb [t]
+                (reduce
+                  #(apply conj
+                          (conj %1 #{%2})
+                          (for [x %1] (conj x %2)))
+                  #{#{(first t)}}
+                  (rest t)))]
+
+     ((complement empty?)
+       (->> (map comb sets)
+            (map (fn [_t] (set (map #(reduce + %) _t))))
+            (apply clojure.set/intersection)))))
+
+  #{-1 1 99}
+  #{-2 2 888}
+  #{-3 3 7777})
+
+
+; ----------------#132
+(= '(1 :less 6 :less 7 4 3) (__ < :less [1 6 7 4 3]))
+
+((fn [f k coll]
+   (filter #(not (nil? %))
+     (reduce #(if (f (last %1) %2)
+              (concat %1 (list k %2))
+              (concat %1 (list %2))) (list (first coll)) (rest coll))))
+  > :more ())
+
+((fn spacer [f k coll]
+   (if (empty? coll)
+     nil
+     (if (next coll)
+       (if (f (first coll) (second coll))
+         (lazy-seq (concat (list (first coll) k) (spacer f k (rest coll))))
+         (lazy-seq (concat (list (first coll)) (spacer f k (rest coll))))
+         )
+       (list (last coll))
+       ))
+   ) > :more ())
+
+
+(= [0 1 :same 1 2 3 :same 5 8 13 :same 21]
+   (take 12 (->> [0 1]
+                 (iterate (fn [[a b]] [b (+ a b)]))
+                 (map first) ; fibonacci numbers
+                 (
+                   (fn spacer [f k coll]
+                    (if (empty? coll)
+                      nil
+                      (if (next coll)
+                        (if (f (first coll) (second coll))
+                          (lazy-seq (concat (list (first coll) k) (spacer f k (rest coll))))
+                          (lazy-seq (concat (list (first coll)) (spacer f k (rest coll))))
+                          )
+                        (list (last coll))
+                        ))
+                    )
+                   (fn [a b] ; both even or both odd
+                       (= (mod a 2) (mod b 2)))
+                     :same))))
+
+; [excellent]
+; take 10してlazyを無効化
+#(let [v (take 10 %3)
+       o first]
+  (if (>= 1 (count v)) v
+                       (loop [r [(o v)]
+                              f (drop-last v)
+                              l (rest v)]
+                         (if (= 0 (count f)) r
+                                             (recur
+                                               (if (% (o f) (o l)) (concat r [%2 (o l)]) (concat r [(o l)]))
+                                               (rest f) (rest l))))))
