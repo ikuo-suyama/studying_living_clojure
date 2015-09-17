@@ -156,3 +156,25 @@
                                              (recur
                                                (if (% (o f) (o l)) (concat r [%2 (o l)]) (concat r [(o l)]))
                                                (rest f) (rest l))))))
+
+; ----------------#135
+(= 8  (__ 10 / 2 - 1 * 2))
+((fn [& args]
+   (reduce #((first %2) %1 (second %2)) (first args) (partition-all 2 (rest args))))
+  10 / 2 - 1 * 2)
+
+; [excellent]
+(fn infix
+  ([a op b] (op a b))
+  ([a op b & more] (apply infix (op a b) more)))
+
+; ----------------#135
+(= [1 0 0 1] (__ 9 2))
+((fn base [n b]
+   (loop [_n n
+          ret '()]
+     (if (< _n b)
+       (conj ret (mod _n b))
+       (recur (quot _n b) (conj ret (mod _n b)))
+       )))
+  9 2)
