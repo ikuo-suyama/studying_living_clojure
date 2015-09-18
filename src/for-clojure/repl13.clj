@@ -13,10 +13,12 @@
      #{'B 'C 'd}})
 
 ((fn [sets]
-   (let [sym->fn (fn [sym]
+   (let [num (count (first sets))
+         sym->fn (fn [sym]
                    (if (= (str sym) (clojure.string/upper-case (str sym)))
                      identity
                      #(bit-flip % 0)))
+
          create-af (fn [_sets]
                      (let [checker (map #(->> (sort-by (fn [_s]
                                                          (clojure.string/lower-case (str _s))) %)
@@ -28,17 +30,38 @@
                              #(->> (map (fn [f b] (f b)) % bits)
                                    (reduce bit-and))
                              checker)
-                           (reduce bit-or))
-                         )))
+                           (reduce bit-or)))))
+
+         hum-dis1? (fn [a b]
+                   (let [hum-dis (bit-xor
+                                   (Integer/parseInt (apply str a) 2)
+                                   (Integer/parseInt (apply str b) 2))]
+                     (some identity
+                          (for [i (range num)]
+                            (= hum-dis (bit-shift-left 1 i))
+                            ))))
+
          graycodes (fn [n]
-                     (for [i (range (Math/pow n 2))
-                           :let [_i (bit-shift-right i 1)]]
-                       (bit-xor i _i)))
+                     (->>
+                       (for [i (range (Math/pow n 2))
+                             :let [_i (bit-shift-right i 1)]]
+                         (bit-xor i _i))
+                       (map #(format (str "%0" num "d") (Integer/parseInt (Integer/toBinaryString %))))
+                       (map #(map (fn [n] (Integer/parseInt (str n))) (seq %)))
+                       ))
+
+         scan-rect (fn [trues]
+                     ; ハミング距離が１(loop)、Sizeが 2^n
+
+                     )
          ]
 
-     ((create-af sets) [1 0 1 1])
-     (map #(Integer/toBinaryString %) (graycodes 4))
-
+     (let [af (create-af sets)]
+       (->> (for [b (graycodes num)]
+              [b (af b)])
+            (filter #(= 1 (second %)))
+            ))
+     (hum-dis1? '(1 1 0 0) '(1 1 1 1))
      ))
   #{#{'a 'B 'C 'd}
     #{'A 'b 'c 'd}
@@ -50,27 +73,13 @@
     #{'A 'B 'C 'd}})
 
 ; Gray Code
-0000
-0001 1
-0011 1
-0010
-0110
-0111 1
-0101 1
-0100
-1100 1
-1101 1
-1111
-1110
-1010
-1011
-1001
-1000
+[(0 1 1 0) 1]
 
-; 1 だけ残す、
-; ハミング距離が１の連続の組み合わせを取る
-; 符号化する
-(let [checker (map #(map sym->fn
-                         (sort-by (fn [_s]
-                                    (clojure.string/lower-case (str _s))) %))
-                   _sets)]
+[(1 1 0 0) 1]
+[(1 1 0 1) 1]
+
+[(1 1 1 0) 1]
+[(1 0 1 0) 1]
+[(1 0 1 1) 1]
+[(1 0 0 1) 1]
+[(1 0 0 0) 1]
