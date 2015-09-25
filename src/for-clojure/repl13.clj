@@ -50,19 +50,45 @@
                        (map #(map (fn [n] (Integer/parseInt (str n))) (seq %)))
                        ))
 
+         pick-hum1 (fn [current target]
+                     (reduce
+                       (fn [ret cur]
+                         (if (hum-dis1? (first (last ret)) (first cur))
+                           (concat ret (list cur))
+                           ret))
+                       (list current)
+                       target))
+
+         pick-rect (fn [current target]
+                     (if (next target)
+                       (loop [_t (reverse target)]
+                         (if (hum-dis1? (first current) (first (first _t)))
+                           (reverse _t)
+                           (recur (rest _t))))
+                       nil))
+
          scan-rect (fn [trues]
                      ; ハミング距離が１(loop)、Sizeが 2^n
-
-                     )
-         ]
+                     (loop [ret '()
+                            target (rest trues)
+                            current (first trues)]
+                       (let [hum1s (pick-hum1 current target)
+                             rect (pick-rect current hum1s)]
+                         (println "hum1: " hum1s)
+                         (println "rect: " rect)
+                         (if (empty? target)
+                           ret
+                           (recur ret (rest target) (first target)))))
+                     )]
 
      (let [af (create-af sets)]
        (->> (for [b (graycodes num)]
               [b (af b)])
             (filter #(= 1 (second %)))
-            ))
-     (hum-dis1? '(1 1 0 0) '(1 1 1 1))
-     ))
+            ;([(0 1 1 0) 1] ...)
+            (scan-rect))))
+;     (hum-dis1? '(1 1 0 0) '(1 1 1 1))
+     )
   #{#{'a 'B 'C 'd}
     #{'A 'b 'c 'd}
     #{'A 'b 'c 'D}
