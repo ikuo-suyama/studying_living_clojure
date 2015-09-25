@@ -53,7 +53,7 @@
          pick-hum1 (fn [current target]
                      (reduce
                        (fn [ret cur]
-                         (if (hum-dis1? (first (last ret)) (first cur))
+                         (if (hum-dis1? (last ret) cur)
                            (concat ret (list cur))
                            ret))
                        (list current)
@@ -62,7 +62,7 @@
          pick-rect (fn [current target]
                      (if (next target)
                        (loop [_t (reverse target)]
-                         (if (hum-dis1? (first current) (first (first _t)))
+                         (if (hum-dis1? current (first _t))
                            (reverse _t)
                            (recur (rest _t))))
                        nil))
@@ -77,17 +77,40 @@
                          (println "hum1: " hum1s)
                          (println "rect: " rect)
                          (if (empty? target)
-                           ret
-                           (recur ret (rest target) (first target)))))
-                     )]
+                           (cons rect ret)
+                           (recur (cons rect ret) (rest target) (first target))))))
+
+         dup? (fn [check all]
+                (let [_all (set (apply concat all))]
+                  (println "check: " check "all: " _all)
+                  (every? #(contains? _all %) check)))
+
+         reduce-dup (fn [rects]
+                      (println "rects:" rects)
+                      (loop [ret '()
+                             cur (first rects)
+                             tar (rest rects)]
+                        (if (empty? tar)
+                          (if (dup? cur (concat tar ret))
+                            ret
+                            (cons cur ret))
+                          (if (dup? cur (concat tar ret))
+                            (recur ret (first tar) (rest tar))
+                            (recur (cons cur ret) (first tar) (rest tar))))))
+
+         bin->alph (fn [rects])
+         ]
 
      (let [af (create-af sets)]
        (->> (for [b (graycodes num)]
               [b (af b)])
             (filter #(= 1 (second %)))
             ;([(0 1 1 0) 1] ...)
-            (scan-rect))))
-;     (hum-dis1? '(1 1 0 0) '(1 1 1 1))
+            (map first)
+            (scan-rect)
+            (sort-by count)
+            (reduce-dup)
+            )))
      )
   #{#{'a 'B 'C 'd}
     #{'A 'b 'c 'd}
