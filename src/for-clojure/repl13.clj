@@ -119,25 +119,26 @@
                          (bin->alph rect))))
          ]
 
-     (let [af (create-af sets)]
-       (->> (for [b (graycodes num)]
-              [b (af b)])
-            (filter #(= 1 (second %)))
-            ;([(0 1 1 0) 1] ...)
-            (map first)
-            (scan-rect)
-            (sort-by count)
-            (reduce-dup)
-            (translate)
-            )))
-     )
-  #{#{'a 'B 'C 'd}
-    #{'A 'b 'c 'd}
-    #{'A 'b 'c 'D}
-    #{'A 'b 'C 'd}
-    #{'A 'b 'C 'D}
-    #{'A 'B 'c 'd}
+     (let [af (create-af sets)
+           ret
+           (->> (for [b (graycodes num)]
+                  [b (af b)])
+                (filter #(= 1 (second %)))
+                ;([(0 1 1 0) 1] ...)
+                (map first)
+                (scan-rect)
+                (sort-by count)
+                (reduce-dup)
+                (translate))]
+       (if (empty? ret)
+         sets
+         ret)
+     )))
+  #{#{'a 'B 'c 'd}
     #{'A 'B 'c 'D}
+    #{'A 'b 'C 'D}
+    #{'a 'b 'c 'D}
+    #{'a 'B 'C 'D}
     #{'A 'B 'C 'd}})
 
 ; Gray Code
