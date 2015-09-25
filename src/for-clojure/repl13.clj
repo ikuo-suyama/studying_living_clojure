@@ -98,7 +98,25 @@
                             (recur ret (first tar) (rest tar))
                             (recur (cons cur ret) (first tar) (rest tar))))))
 
-         bin->alph (fn [rects])
+         ALPHA {1 ['A 'B 'C 'D] 0 ['a 'b 'c 'd]}
+
+         bin->alph (fn [rect]
+                     (let [alphas (for [_set rect
+                                        :let [v (vec _set)]]
+                                    (for [i (range (count v))]
+                                      ((get ALPHA (v i)) i))
+                                    )]
+                       (->> (flatten alphas)
+                            (group-by identity)
+                            (filter #(= (count alphas) (count (second %))))
+                            (map first)
+                            (set)
+                            )))
+
+         translate (fn [rects]
+                     (set
+                       (for [rect rects]
+                         (bin->alph rect))))
          ]
 
      (let [af (create-af sets)]
@@ -110,6 +128,7 @@
             (scan-rect)
             (sort-by count)
             (reduce-dup)
+            (translate)
             )))
      )
   #{#{'a 'B 'C 'd}
