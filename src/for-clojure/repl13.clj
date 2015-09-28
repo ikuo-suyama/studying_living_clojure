@@ -152,3 +152,32 @@
 [(1 0 1 1) 1]
 [(1 0 0 1) 1]
 [(1 0 0 0) 1]
+
+; ----------------#141
+(let [notrump (__ nil)]
+  (and (= {:suit :club :rank 9}  (notrump [{:suit :club :rank 4}
+                                           {:suit :club :rank 9}]))
+       (= {:suit :spade :rank 2} (notrump [{:suit :spade :rank 2}
+                                           {:suit :club :rank 10}]))))
+
+(((fn [trump]
+    (fn winner [tricks]
+      (let [target (if (nil? trump)
+                     tricks
+                     (if-let [trumps (filter #(= (:suit %) trump) tricks)]
+                       trumps
+                       tricks))
+            lead (:suit (first target))]
+        (->> target
+             (filter #(= (:suit %) lead))
+             (sort-by #(:rank %))
+             (last))))
+    ) nil)
+  [{:suit :spade :rank 2}
+   {:suit :club :rank 10}])
+
+; [Excellent]
+(fn [t] (fn [C]
+          (->> C
+               (filter #(= (:suit %) (or t (:suit (first C)))))
+               (apply max-key :rank))))
