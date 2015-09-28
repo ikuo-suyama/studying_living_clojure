@@ -181,3 +181,16 @@
           (->> C
                (filter #(= (:suit %) (or t (:suit (first C)))))
                (apply max-key :rank))))
+
+
+; ----------------#144
+(= (take 3 (__ 3.14 int double)) [3.14 3 3.0])
+(take 4 ((fn [val & funcs]
+    (let [inf-funcs (cycle funcs)
+          lazy-vals (fn _lv [tar funcs]
+                      (let [f (first funcs)
+                            v (f tar)]
+                        (lazy-seq (cons tar (_lv v (rest funcs))))))]
+      (lazy-vals val inf-funcs)
+      ))
+   3.14 int double))
