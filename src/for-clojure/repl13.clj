@@ -194,3 +194,71 @@
       (lazy-vals val inf-funcs)
       ))
    3.14 int double))
+
+(= :gt (__ < 5 1))
+
+((fn [f x y]
+   (cond
+     (true? (f y x)) :gt
+     (true? (f x y)) :lt
+     :else :eq
+     )) (fn [x y] (< (count x) (count y))) "pear" "plum")
+
+; ----------------#147
+(= (take 5 (__ [1])) [[1] [1 1] [1 2 1] [1 3 3 1] [1 4 6 4 1]])
+
+(take 3 ((fn p [coll]
+    (let [n (map +' (concat '(0) coll) (concat coll '(0)))]
+      (lazy-cat (cons coll (p n))))
+    ) [2 3 2]))
+
+; ----------------#146
+(= (__ '{a {p 1, q 2}
+         b {m 3, n 4}})
+   '{[a p] 1, [a q] 2
+     [b m] 3, [b n] 4})
+
+((fn [amap]
+   (let [ks (keys amap)]
+     (apply merge
+            (flatten (for [k ks
+                           :let [vs (get amap k)]]
+                       (for [k2 (keys vs)]
+                         {[k k2] (get vs k2)}
+                         ))))))
+  '{a {p 1, q 2}
+    b {m 3, n 4}})
+
+; ----------------#147
+(= (__ #{#{[1 2 3] [4 5]}
+         #{[1 2] [3 4 5]}
+         #{[1] [2] 3 4 5}
+         #{1 2 [3 4] [5]}})
+   true)
+(= (__ #{#{'(:x :y :z) '(:x :y) '(:z) '()}
+         #{#{:x :y :z} #{:x :y} #{:z} #{}}
+         #{'[:x :y :z] [:x :y] [:z] [] {}}})
+   false)
+((fn [sets]
+   (let [seqs (seq sets)
+         tr (for [s seqs]
+              (set (map #(if (coll? %)
+                          (map str (set %))
+                          (hash-set (str %))) s)))]
+     (loop [c (first tr)
+            t (rest tr)]
+       (println c t)
+       (if (some #(or (clojure.set/superset? c %) (clojure.set/superset? % c)) t)
+         false
+         (if (next t)
+           (recur (first t) (rest t))
+           true))
+       )))
+  #{#{(#(-> *)) + (quote mapcat) #_ nil}
+    #{'+ '* mapcat (comment mapcat)}
+    #{(do) set contains? nil?}
+    #{, , , #_, , empty?}}
+  )
+; 全部シンボルにする？ Intelijでは通るが4clojrueで通らない
+; Excellent
+#(% distinct? (% concat %2)) apply
