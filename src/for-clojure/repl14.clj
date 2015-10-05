@@ -88,3 +88,41 @@
         System.out.println(\"Hello world.\");
       }
     }")
+
+; ----------------#150
+(take 1
+      ((fn pal [s]
+         (let [rev (fn [k n]
+                     (let [sk (seq (str k))]
+                       (bigint
+                         (apply str
+                                (concat sk (if (odd? n)
+                                             (rest (reverse sk))
+                                             (reverse sk)))))))
+               en (fn [n]
+                    (bigint (apply str \1 (for [i (range n)] \0))))
+               st (fn [n])
+               f (fn [n]
+                   (if (= n 1)
+                     (range 10)
+                     (let [i (quot (dec n) 2)]
+                       ;(for [k (range (Math/pow 10 i) (Math/pow 10 (inc i)))]
+                       ;  (rev (long k) n))
+                       (map #(rev % n) (range (en i) (en (inc i))))
+                       )))
+               sn (count (str s))]
+           ;(lazy-cat (drop-while #(< % s) (f sn)) (pal (en sn)))
+           (f sn)
+           ))
+           ;(lazy-cat (drop-while #(< % s) (f sn)) (f (inc sn)))))
+           ;(drop-while #(< % s) (f sn))
+        (* 111111111 111111111))
+      )
+
+; drop whileが長過ぎるのでこいつでタイムアウトしている
+; range en i からの開始を、指定数より起き鋳物にしてdrop-whileをなくす
+(count (str (* 111111111 111111111)))
+
+
+(take 12 ((fn f [a]
+    (lazy-cat (range 0 9) (f 1))) 1))
