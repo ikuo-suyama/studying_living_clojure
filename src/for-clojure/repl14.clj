@@ -90,37 +90,39 @@
     }")
 
 ; ----------------#150
-(take 1
+(set (map #(first
+;(take 26
       ((fn pal [s]
-         (let [rev (fn [k n]
+         (let [sn (count (str s))
+
+               rev (fn [k n]
                      (let [sk (seq (str k))]
                        (bigint
                          (apply str
                                 (concat sk (if (odd? n)
                                              (rest (reverse sk))
                                              (reverse sk)))))))
+
                en (fn [n]
                     (bigint (apply str \1 (for [i (range n)] \0))))
-               st (fn [n])
+
+               st (fn [s sn]
+                    (let [r (apply str (take (quot (inc sn) 2) (seq (str s))))]
+                      (if (> s (rev r (count (str s))))
+                        (inc (bigint r))
+                        (bigint r))))
+
                f (fn [n]
                    (if (= n 1)
                      (range 10)
                      (let [i (quot (dec n) 2)]
-                       ;(for [k (range (Math/pow 10 i) (Math/pow 10 (inc i)))]
-                       ;  (rev (long k) n))
-                       (map #(rev % n) (range (en i) (en (inc i))))
-                       )))
-               sn (count (str s))]
-           ;(lazy-cat (drop-while #(< % s) (f sn)) (pal (en sn)))
-           (f sn)
+                       (map (fn [a] (rev a n)) (range (st s sn) (en (inc i))))
+                       )))]
+           (lazy-cat (f sn) (pal (en sn)))
            ))
-           ;(lazy-cat (drop-while #(< % s) (f sn)) (f (inc sn)))))
-           ;(drop-while #(< % s) (f sn))
-        (* 111111111 111111111))
-      )
+;        0))
+        %)) (range 0 10000)))
 
-; drop whileが長過ぎるのでこいつでタイムアウトしている
-; range en i からの開始を、指定数より起き鋳物にしてdrop-whileをなくす
 (count (str (* 111111111 111111111)))
 
 
