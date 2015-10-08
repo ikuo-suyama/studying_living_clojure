@@ -90,8 +90,8 @@
     }")
 
 ; ----------------#150
-;(set (map #(first
-(take 50
+(set (map #(first
+;(take 6
       ((fn pal [s]
          (let [cnt (fn [n] (count (str (bigint n))))
 
@@ -117,18 +117,17 @@
                    (let [i (quot (dec n) 2)
                          scale? (= (inc a) (en (inc i)))
                          na (if scale?
-                              (en i)
-                              (inc a)
-                              )
+                              (en (if (odd? n) i (inc i)))
+                              (inc a))
                          nn (if scale? (inc n) n)]
                      ; N up -> a さいしょから
-                     (cons (rev a n) (lazy-seq (_f na nn)))))
+                     (cons (rev a n) (lazy-seq (time (_f na nn))))))
                ]
-           (f (init s (cnt s)) (cnt s))
+           (time (f (init s (cnt s)) (cnt s)))
            ;(list (cnt (bigint 200)))
            ))
-        0))
-;        %)) (range 0 10000)))
+;        1234550000))
+        %)) (range 0 10000)))
 
 ;f ... 0.01 ~ 0.02s
 ;rev ... 0.005 ~ 0.002
