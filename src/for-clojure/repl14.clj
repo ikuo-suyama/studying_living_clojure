@@ -90,10 +90,10 @@
     }")
 
 ; ----------------#150
-(set (map #(first
-;(take 26
+;(set (map #(first
+(take 50
       ((fn pal [s]
-         (let [sn (count (str s))
+         (let [cnt (fn [n] (count (str (bigint n))))
 
                rev (fn [k n]
                      (let [sk (seq (str k))]
@@ -106,22 +106,29 @@
                en (fn [n]
                     (bigint (apply str \1 (for [i (range n)] \0))))
 
-               st (fn [s sn]
-                    (let [r (apply str (take (quot (inc sn) 2) (seq (str s))))]
-                      (if (> s (rev r (count (str s))))
-                        (inc (bigint r))
-                        (bigint r))))
+               init (fn [s sn]
+                    (if (= s 0) s
+                      (let [r (apply str (take (quot (inc sn) 2) (seq (str s))))]
+                        (if (> s (rev r (count (str s))))
+                          (inc (bigint r))
+                          (bigint r)))))
 
-               f (fn [n]
-                   (if (= n 1)
-                     (range 10)
-                     (let [i (quot (dec n) 2)]
-                       (map (fn [a] (rev a n)) (range (st s sn) (en (inc i))))
-                       )))]
-           (lazy-cat (f sn) (pal (en sn)))
+               f (fn _f [a n]
+                   (let [i (quot (dec n) 2)
+                         scale? (= (inc a) (en (inc i)))
+                         na (if scale?
+                              (en i)
+                              (inc a)
+                              )
+                         nn (if scale? (inc n) n)]
+                     ; N up -> a さいしょから
+                     (cons (rev a n) (lazy-seq (_f na nn)))))
+               ]
+           (f (init s (cnt s)) (cnt s))
+           ;(list (cnt (bigint 200)))
            ))
-;        0))
-        %)) (range 0 10000)))
+        0))
+;        %)) (range 0 10000)))
 
 ;f ... 0.01 ~ 0.02s
 ;rev ... 0.005 ~ 0.002
